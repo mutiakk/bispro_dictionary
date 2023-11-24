@@ -2,10 +2,12 @@ import 'dart:convert';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutterdict/page/stateless.dart';
 import 'package:http/http.dart' as http;
 import '../env.dart';
 import '../fonts.dart';
 import '../word.dart';
+
 
 class ListWord extends StatefulWidget {
   const ListWord({Key? key}) : super(key: key);
@@ -43,7 +45,24 @@ class _ListWordState extends State<ListWord> {
         _post = _words;
       });
     } catch (e) {
-      print('Error: $e');
+      print("Error! ");
+      showDialog(
+          context: context, // Provide the context of your widget
+          builder: (context) {
+            return AlertDialog(
+              title: Text('Error'),
+              content: Text(
+                  'Failed to fetch data. Check your internet and try again'),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            );
+          });
     }
   }
 
@@ -68,77 +87,23 @@ class _ListWordState extends State<ListWord> {
       body: SafeArea(
         child: ListView.builder(
           controller: _scrollController,
-            itemCount: _post.length + 1,
-            itemBuilder: (context, i) {
-              return i == 0 ? _searchBar() : _listWord(i - 1);
-            }),
-      ),
-    );
+          itemCount: _post.length + 1,
+          itemBuilder: (context, i) {
+            return i == 0
+                ? _searchBar()
+                : ListUi(
+              words: _post[i - 1].word.toString(),
+              text1: _post[i - 1].textFirst.toString(),
+              text2: _post[i - 1].textScnd.toString(),
+            );
+          },
+        )
+
+        ),
+      );
+    //);
   }
 
-  _listWord(i) {
-    return Container(
-      margin: EdgeInsets.fromLTRB(
-        10,
-        0,
-        10,
-        0,
-      ),
-      child: Theme(
-          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-          child: Card(
-            shape: RoundedRectangleBorder(
-              // side: BorderSide(color: Colors.blueAccent),
-              borderRadius: BorderRadius.circular(20.0),
-            ),
-            child: ExpansionTile(
-              tilePadding: EdgeInsets.symmetric(horizontal: 16.0),
-              title: Text(
-                _post[i].word.toString(),
-                style: ThemeFonts.textStyle300.copyWith(
-                  fontSize: 20,
-                ),
-              ),
-              children: <Widget>[
-                // Content to show when the tile is expanded
-                Column(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.all(10.0),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          _post[i].textFirst.toString(),
-                          style: TextStyle(fontSize: 16),
-                          textAlign: TextAlign.left,
-                        ),
-                      ),
-                    ),
-                    if (_post[i].textScnd != '')
-                      Container(
-                        padding: EdgeInsets.all(10.0),
-                        margin: EdgeInsets.all(10.0),
-                        width: MediaQuery.of(context).size.width,
-                        decoration: BoxDecoration(
-                            color: Colors.grey[300],
-                            borderRadius: BorderRadius.circular(20)),
-                        child: Text(
-                          _post[i].textScnd.toString(),
-                          style: TextStyle(fontSize: 16),
-                        ),
-                      )
-                    else
-                      Container(
-                          decoration: BoxDecoration(
-                        color: Colors.white,
-                      ))
-                  ],
-                ),
-              ],
-            ),
-          )),
-    );
-  }
 
   _searchBar() {
     return Container(
@@ -184,7 +149,7 @@ class _ListWordState extends State<ListWord> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: Padding(
-                  padding: EdgeInsets.fromLTRB(20, 70, 20, 30),
+                  padding: EdgeInsets.fromLTRB(20, 70, 20, 20),
                   child: Text(
                     'Business Glossaries',
                     style: ThemeFonts.textTitleDict
@@ -195,26 +160,27 @@ class _ListWordState extends State<ListWord> {
                 ),
               ),
               Padding(
-                  padding: EdgeInsets.only(top: 5, left: 50, right: 10),
-                  child: TextFormField(
-                    decoration: InputDecoration(
-                        prefixIcon: Icon(Icons.search),
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(20),
-                            borderSide: BorderSide(color: Colors.teal)),
-                        hintText: 'Search..',
-                        fillColor: Colors.white,
-                        filled: true),
-                    onChanged: (text) {
-                      text = text.toLowerCase();
-                      setState(() {
-                        _post = _words.where((e) {
-                          var keyword = e.word.toLowerCase();
-                          return keyword.contains(text);
-                        }).toList();
-                      });
-                    },
-                  )),
+                padding: const EdgeInsets.fromLTRB(50, 5, 10,5),
+                child: TextFormField(
+                  decoration: InputDecoration(
+                      prefixIcon: Icon(Icons.search),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          borderSide: BorderSide(color: Colors.teal)),
+                      hintText: 'Search..',
+                      fillColor: Colors.white,
+                      filled: true),
+                  onChanged: (text) {
+                    text = text.toLowerCase();
+                    setState(() {
+                      _post = _words.where((e) {
+                        var keyword = e.word.toLowerCase();
+                        return keyword.contains(text);
+                      }).toList();
+                    });
+                  },
+                ),
+              ),
             ],
           ),
         ],
